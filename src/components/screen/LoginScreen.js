@@ -15,6 +15,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from 'axios';
 import { AuthContext } from '../auth/authContext';
 import { useHistory } from 'react-router-dom';
+import { validarSO } from '../../helpers/validarSO';
 
 const theme = createTheme();
 
@@ -31,7 +32,7 @@ export const LoginScreen = () => {
     const contrasena = data.get('password');
 
     const fetch = await axios({
-      url: 'http://localhost:5000/api/auth',
+      url: `${validarSO()}/api/auth`,
       method: 'POST',
       data: {
         correo,

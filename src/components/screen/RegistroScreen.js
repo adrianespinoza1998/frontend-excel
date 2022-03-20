@@ -8,6 +8,7 @@ import Button from '@mui/material/Button';
 import { validarRegistroUsuario } from './../../helpers/validarRegistroUsuario';
 import axios from 'axios';
 import { useHistory } from 'react-router-dom';
+import { validarSO } from '../../helpers/validarSO';
 
 const theme = createTheme();
 
@@ -29,7 +30,7 @@ export const RegistroScreen = () => {
         if (validarRegistroUsuario(nombre, apPaterno, apMaterno, correo, contrasena)) {
             //alert("Validación correcta");
             const fetch = await axios({
-                url: 'http://localhost:5000/api/usuario',
+                url: `${validarSO()}/api/usuario`,
                 method: 'POST',
                 data: {
                     nombre,
@@ -120,7 +121,7 @@ export const RegistroScreen = () => {
                             variant="contained"
                             sx={{ mt: 3, mb: 2 }}
                         >
-                            Registrase
+                            Registrarse
                         </Button>
                     </Box>
                 </Box>

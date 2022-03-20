@@ -36,8 +36,8 @@ export const validarRegistroUsuario = (nombre = '', apPaterno = '', apMaterno = 
         return false;
     }
 
-    if(contrasena.length<6){
-        alert("La contraseña debe poseer 6 caracteres mínimo");
+    if(contrasena.length<8){
+        alert("La contraseña debe poseer 8 caracteres mínimo");
         return false;
     }
 

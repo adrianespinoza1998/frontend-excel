@@ -17,6 +17,7 @@ import Paper from '@mui/material/Paper';
 import * as axios from 'axios';
 import {useContext} from 'react'
 import {AuthContext} from '../auth/authContext'
+import { validarSO } from '../../helpers/validarSO';
 
 const theme = createTheme();
 
@@ -83,10 +84,8 @@ export const HomeScreen = () => {
 
         try {
 
-            console.log(user.token);
-
             const fetch = await axios({
-                url: 'http://localhost:5000/api/items',
+                url: `${validarSO()}/api/items`,
                 method: 'POST',
                 data: {
                     items: data
