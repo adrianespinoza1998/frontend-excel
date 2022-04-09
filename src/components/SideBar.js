@@ -11,8 +11,12 @@ export const SideBar = ({ isDrawerOpen, setIsDrawerOpen }) => {
 
     const usuario = JSON.parse(user.usuario);
 
-    const cargarItems = ()=>{
+    const cargarItems = () => {
         history.push('/home/admin/items');
+    }
+
+    const mostrarProyectos = ()=>{
+        history.push('/home/admin/mostrar-proyectos')
     }
 
     return (
@@ -38,9 +42,15 @@ export const SideBar = ({ isDrawerOpen, setIsDrawerOpen }) => {
                         </ListItem>
                     </div>
                     :
-                    <ListItem button onClick={cargarItems}>
-                        <ListItemText primary="Cargar items" />
-                    </ListItem>}
+                    <div>
+                        <ListItem button onClick={cargarItems}>
+                            <ListItemText primary="Cargar items" />
+                        </ListItem>
+                        <ListItem button onClick={mostrarProyectos}>
+                            <ListItemText primary="Mostrar proyectos" />
+                        </ListItem>
+                    </div>
+                }
             </List>
         </Drawer >
     )

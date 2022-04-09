@@ -10,6 +10,8 @@ import {
 import { HomeScreen } from '../screen/HomeScreen';
 import { Navbar } from '../Navbar';
 import { SideBar } from '../SideBar';
+import { MostrarProyectos } from '../screen/MostrarProyectos';
+import { MostrarProyectoScreen } from '../screen/MostrarProyectoScreen';
 
 export const HomeRouter = () => {
 
@@ -23,6 +25,8 @@ export const HomeRouter = () => {
         <Route exact path="/home/admin" component={HomeAdminScreen} />
         <Route exact path="/home/admin/items" component={HomeScreen} />
         <Route exact path="/home/project" component={HomeProjectScreen} />
+        <Route exact path="/home/admin/mostrar-proyectos" component={MostrarProyectos} />
+        <Route exact path="/home/admin/proyecto/:id" component={MostrarProyectoScreen} />
         <Route exact path="/home/user" component={HomeUserScreen} />
         <Redirect to="/" />
       </Switch>
