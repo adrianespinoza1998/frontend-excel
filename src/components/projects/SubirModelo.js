@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
     acceleratedRaycast,
     computeBoundsTree,
@@ -19,9 +19,21 @@ import {
     OrbitControls
 } from "three/examples/jsm/controls/OrbitControls";
 import { IFCLoader } from "web-ifc-three/IFCLoader";
+
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import Button from '@mui/material/Button';
+import FormControl from '@mui/material/FormControl';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+
 import { colors } from "../../helpers/colors";
 import * as axios from 'axios';
 import { validarSO } from '../../helpers/validarSO';
+import { ModeloContext } from '../modelo/modeloContext';
+import { useHistory } from 'react-router-dom';
+import { UploadFile } from '../forms/UploadFile';
 
 export const SubirModelo = ({ guardarModelo, data, user, archivoModelo }) => {
     //Creates the Three.js scene
@@ -63,6 +75,8 @@ export const SubirModelo = ({ guardarModelo, data, user, archivoModelo }) => {
 
     const ifcModels = [];
 
+    const { dispatchLoad } = useContext(ModeloContext);
+
     const [descripcion, setDescripcion] = useState(false);
 
     const [lastDesripcion, setLastDescripcion] = useState('');
@@ -71,7 +85,52 @@ export const SubirModelo = ({ guardarModelo, data, user, archivoModelo }) => {
 
     const [listaDatAsoc, setListaDatAsoc] = useState([]);
 
+    const [archivoModl, setArchivoModl] = useState({
+        nombreArchivo: '',
+        cargaArchivo: false
+    });
+
+    const { nombreArchivo, cargaArchivo } = archivoModl;
+
+    const onChangeUpload = (event) => {
+        event.preventDefault();
+
+        dispatchLoad({ type: 'loading' });
+        setLoad(true);
+
+        const archivo = event.target.files[0];
+
+        guardarModelo(archivo);
+
+        if (archivo) {
+
+            const ifcUrl = URL.createObjectURL(archivo);
+
+            ifcLoader.load(ifcUrl, (ifcModel) => {
+                ifcModels.push(ifcModel);
+                scene.add(ifcModel);
+
+                setDescripcion(true);
+
+                dispatchLoad({ type: 'loaded' });
+                setLoad(false);
+
+                setArchivoModl({
+                    nombreArchivo: archivo.name,
+                    cargaArchivo: true
+                });
+            });
+        } else {
+            setArchivoModl({
+                nombreArchivo: 'Datos a subir',
+                cargaArchivo: false
+            });
+        }
+    }
+
     const [menuData, setMenuData] = useState(data);
+    const [load, setLoad] = useState(false);
+    const history = useHistory();
 
     const raycaster = new Raycaster();
     raycaster.firstHitOnly = true;
@@ -137,24 +196,9 @@ export const SubirModelo = ({ guardarModelo, data, user, archivoModelo }) => {
 
             setIdLugar(id);
 
+            console.log(id);
+
             highlight(event, material, model);
-        }
-    }
-
-    const handleUpload = (event) => {
-        const archivo = event.target.files[0];
-
-        guardarModelo(archivo);
-
-        if (archivo) {
-            const ifcUrl = URL.createObjectURL(archivo);
-
-            ifcLoader.load(ifcUrl, (ifcModel) => {
-                ifcModels.push(ifcModel);
-                scene.add(ifcModel);
-
-                setDescripcion(true);
-            });
         }
     }
 
@@ -165,27 +209,41 @@ export const SubirModelo = ({ guardarModelo, data, user, archivoModelo }) => {
     const asociarDatosModelo = () => {
         const lista = listaDatAsoc;
 
-        lista.push({
-            id: idLugar,
-            descripcion: lastDesripcion
-        });
+        let flag = false;
 
-        setListaDatAsoc(lista);
+        for (let i = 0; i < listaDatAsoc.length; i++) {
+            if (listaDatAsoc[i].id === idLugar) {
+                flag = true;
+                console.log(idLugar);
+            }
+        }
 
-        const menu = menuData.filter(d => d[2] !== lastDesripcion);
+        if (!flag) {
+            lista.push({
+                id: idLugar,
+                descripcion: lastDesripcion
+            });
 
-        console.log(menu);
+            setListaDatAsoc(lista);
 
-        setMenuData(menu);
+            const menu = menuData.filter(d => d[2] !== lastDesripcion);
 
-        document.querySelector('#selectDescription').value = 0;
+            console.log(menu);
 
-        alert("Dato asociado");
+            setMenuData(menu);
+
+            document.querySelector('#selectDescription').value = 0;
+
+            alert("Dato asociado");
+        } else {
+            alert("Esta estancia ya esta seleccionada");
+        }
     }
 
     const subirProyecto = async () => {
 
         if (listaDatAsoc.length > 0) {
+
             const fetchProyecto = await axios({
                 url: `${validarSO()}/api/proyecto`,
                 method: 'POST',
@@ -241,8 +299,8 @@ export const SubirModelo = ({ guardarModelo, data, user, archivoModelo }) => {
 
                     if (fetchItems.data.msg === "Items insertados") {
                         alert("Proyecto guardado");
+                        history.push('/home/admin');
                     }
-
                 }
             }
         } else {
@@ -335,26 +393,113 @@ export const SubirModelo = ({ guardarModelo, data, user, archivoModelo }) => {
     }, []);
 
     useEffect(() => {
-        console.log(menuData);
+        //console.log(menuData);
     }, [menuData]);
 
     return (
         <div>
             <canvas id='three-canvas' style={{ position: 'relative', height: '96.5vh', width: '100%' }}></canvas>
-            <input type="file" id='upload' onChange={handleUpload} accept='.ifc' />
-            <select id='selectDescription' onChange={handleDescripcion}>
-                <option value={0}>--Seleccione--</option>
+
+            <Grid container spacing={2} sx={{ justifyContent: 'center', alignItems: 'center', margin: 1 }}>
                 {
-                    (descripcion) &&
-                    menuData.map((row, index) => {
-                        if(row[2]!=='Descripcion'){
-                            return <option key={index}>{row[2]}</option>
-                        }
-                    })
+                    (load) &&
+                    <Grid item xs={6} md={12}>
+                        <Typography component="h1" variant="h5">
+                            Cargando......
+                        </Typography>
+                    </Grid>
                 }
-            </select>
-            <button onClick={asociarDatosModelo}>Seleccionar</button>
-            <button onClick={subirProyecto}>Subir modelo</button>
+                {
+                    (cargaArchivo) &&
+                    <>
+                        <Grid item xs={6} md={6}>
+                            <FormControl sx={{ minWidth: 200 }} size="small">
+                                <InputLabel id="selectDescription">Descripcion</InputLabel>
+                                <Select
+                                    labelId="selectDescription"
+                                    id="selectDescription"
+                                    onChange={handleDescripcion}
+                                    label="Descripcion"
+                                    sx={{ display: 'inline-block' }}
+                                    value={lastDesripcion}
+                                >
+                                    <MenuItem value={0}>
+                                        <em>--Seleccione--</em>
+                                    </MenuItem>
+                                    {
+                                        (descripcion) &&
+                                        menuData.map((row, index) => {
+                                            if (row[2] !== 'Descripcion') {
+                                                return <MenuItem key={index} value={row[2]}>
+                                                    {row[2]}
+                                                </MenuItem>
+                                            }
+                                        })
+                                    }
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6} md={3}>
+                            <Button
+                                sx={{
+                                    mt: 5,
+                                    mb: 5,
+                                    backgroundColor: "#2196f3",
+                                    color: "#fff",
+                                    "&:hover": {
+                                        color: "#2196f3"
+                                    }
+                                }}
+                                onClick={asociarDatosModelo}
+                            >
+                                Seleccionar
+                            </Button>
+                        </Grid>
+                    </>
+                }
+                <Grid item xs={6} md={(cargaArchivo) ? 6 : 12}>
+                    <UploadFile nombreArchivo={nombreArchivo} cargaArchivo={cargaArchivo}
+                        onChangeUpload={onChangeUpload} tipoData={'.ifc'} useDisabled={true} />
+                </Grid>
+                {
+                    (cargaArchivo) &&
+                    <Grid item xs={6} md={3}>
+                        <Button
+                            sx={{
+                                mt: 5,
+                                mb: 5,
+                                backgroundColor: "#2196f3",
+                                color: "#fff",
+                                "&:hover": {
+                                    color: "#2196f3"
+                                }
+                            }} onClick={subirProyecto}
+                        >
+                            Subir modelo
+                        </Button>
+                    </Grid>
+                }
+            </Grid>
+            {/*<input type="file" id='upload' onChange={handleUpload} accept='.ifc' />*/}
+            {
+                /*(load) &&
+                <div>
+                    <p>Cargando.....</p>
+                </div>*/
+            }
+            {/*<select id='selectDescription' onChange={handleDescripcion}>
+        <option value={0}>--Seleccione--</option>
+        {
+            (descripcion) &&
+            menuData.map((row, index) => {
+                if (row[2] !== 'Descripcion') {
+                    return <option key={index}>{row[2]}</option>
+                }
+            })
+        }
+    </select>*/}
+            {/*<button onClick={asociarDatosModelo}>Seleccionar</button>
+    <button onClick={subirProyecto}>Subir modelo</button>*/}
         </div>
     )
 }

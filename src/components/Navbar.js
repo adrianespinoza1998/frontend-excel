@@ -9,18 +9,21 @@ import { Button } from '@mui/material';
 import { useContext } from 'react';
 import { useHistory } from 'react-router-dom';
 import { AuthContext } from './auth/authContext';
+import { ModeloContext } from './modelo/modeloContext';
 
-function appBarLabel(label, history, dispatch, setIsDrawerOpen) {
+function appBarLabel(label, history, dispatch, setIsDrawerOpen, load) {
 
     const logout = () => {
 
-        const action = {
-            type: 'logout'
+        if(!load.loading){
+            const action = {
+                type: 'logout'
+            }
+    
+            dispatch(action);
+    
+            history.replace('/');
         }
-
-        dispatch(action);
-
-        history.replace('/');
     }
 
     return (
@@ -50,12 +53,13 @@ export const Navbar = ({setIsDrawerOpen}) => {
 
     const history = useHistory();
     const { dispatch } = useContext(AuthContext);
+    const { load } = useContext(ModeloContext);
 
     return (
         <Stack spacing={2} sx={{ flexGrow: 1 }}>
             <ThemeProvider theme={darkTheme}>
                 <AppBar position="static" color="primary" style={{ margin: 0 }}>
-                    {appBarLabel('Extraer excel', history, dispatch, setIsDrawerOpen)}
+                    {appBarLabel('Extraer excel', history, dispatch, setIsDrawerOpen, load)}
                 </AppBar>
             </ThemeProvider>
         </Stack>

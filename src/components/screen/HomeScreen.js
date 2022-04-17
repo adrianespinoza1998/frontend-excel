@@ -21,7 +21,7 @@ export const HomeScreen = () => {
     const {archivoModelo, loadModelo} = modelo;
 
     const { data, load } = items;
-
+    
     const {user} = useContext(AuthContext); 
 
     const [archivo, setArchivo] = useState({

@@ -8,6 +8,11 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { validarSO } from '../../helpers/validarSO';
 import { AuthContext } from '../auth/authContext';
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
 
 const theme = createTheme();
 
@@ -30,7 +35,7 @@ export const MostrarProyectos = () => {
         setProyectos(fetch.data);
     }, []);
 
-    const handleClick = (id)=>{
+    const handleClick = (id) => {
         history.push(`/home/admin/proyecto/${id}`);
     }
 
@@ -50,11 +55,19 @@ export const MostrarProyectos = () => {
                         Lista de proyectos
                     </Typography>
                     {
-                        proyectos.map((pr,index)=>{
-                            return <div onClick={()=>{handleClick(pr.idProyecto)}} >
-                                <div key={index}>{pr.nombreProyecto}</div>
-                                <hr />
-                            </div>
+                        proyectos.map((pr, index) => {
+
+                            return <Card variant='outlined' key={index} sx={{ minWidth: 275, marginTop: 4 }}>
+                                <CardContent sx={{alignItems: 'center', justifyContent: 'center'}}>
+                                    <Typography sx={{ fontSize: 14, textAlign: 'center' }} color="text.secondary" gutterBottom>
+                                        {`${pr.nombreProyecto} (${index})`}
+                                    </Typography>
+                                    <Divider />
+                                </CardContent>
+                                <CardActions sx={{alignItems: 'center', justifyContent: 'center'}}>
+                                <Button onClick={()=>{handleClick(pr.idProyecto)}} size="small">Ver</Button>
+                                </CardActions>
+                            </Card>
                         })
                     }
                 </Box>

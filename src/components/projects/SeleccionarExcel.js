@@ -7,6 +7,8 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
+import {UploadFile} from '../forms/UploadFile';
+
 const theme = createTheme();
 
 export const SeleccionarExcel = ({handleSubmit, cargaArchivo, nombreArchivo, onChangeUpload}) => {
@@ -27,23 +29,8 @@ export const SeleccionarExcel = ({handleSubmit, cargaArchivo, nombreArchivo, onC
                     </Typography>
                     <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }} align="center">
                         <Grid sx={{ alignItems: 'center' }}>
-                            <Button
-                                variant="contained"
-                                component="label"
-                                sx={{
-                                    backgroundColor: (cargaArchivo) ? "green" : "primary"
-                                }}
-                            >
-                                {(cargaArchivo) ? nombreArchivo : "Seleccionar Archivo"}
-                                <input
-                                    name="excel"
-                                    id="excel"
-                                    type="file"
-                                    accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                    hidden
-                                    onChange={onChangeUpload}
-                                />
-                            </Button>
+                            <UploadFile onChangeUpload={onChangeUpload} cargaArchivo={cargaArchivo} 
+                                nombreArchivo={nombreArchivo} tipoData={'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'} />
                         </Grid>
                         <Grid sx={{ alignItems: 'center' }}>
                             <Button

@@ -16,8 +16,7 @@ import {
     PerspectiveCamera,
     Scene,
     WebGLRenderer,
-    Raycaster,
-    Vector2
+    Raycaster
 } from "three";
 import {
     OrbitControls
@@ -25,6 +24,15 @@ import {
 import { IFCLoader } from "web-ifc-three/IFCLoader";
 import { colors } from "../../helpers/colors";
 import { AuthContext } from '../auth/authContext';
+import { ModeloContext } from '../modelo/modeloContext';
+
+import CssBaseline from '@mui/material/CssBaseline';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+
+const theme = createTheme();
 
 export const MostrarProyectoScreen = () => {
 
@@ -69,20 +77,29 @@ export const MostrarProyectoScreen = () => {
 
     const raycaster = new Raycaster();
     raycaster.firstHitOnly = true;
-    const mouse = new Vector2();
-
-    let preselectModel = { id: - 1 };
 
     let ifc;
 
+    const [load, setLoad] = useState(false);
+    const { dispatchLoad } = useContext(ModeloContext);
+
     const highlight = (material, idPieza) => {
-        ifcLoader.ifcManager.createSubset({
-            modelID: 0,
-            ids: [idPieza],
-            material: material,
-            scene: scene,
-            removePrevious: true
-        });
+
+        return new Promise((resolve, reject) => {
+            try {
+                ifcLoader.ifcManager.createSubset({
+                    modelID: 0,
+                    ids: [idPieza],
+                    material: material,
+                    scene: scene,
+                    removePrevious: false
+                });
+                resolve(true);
+            } catch (error) {
+                console.log(error);
+                reject(false);
+            }
+        })
     }
 
     const { id } = useParams();
@@ -92,6 +109,8 @@ export const MostrarProyectoScreen = () => {
     const { user } = useContext(AuthContext);
 
     useEffect(async () => {
+
+        dispatchLoad({ type: 'loading' });
 
         scene = new Scene();
 
@@ -164,6 +183,8 @@ export const MostrarProyectoScreen = () => {
             disposeBoundsTree,
             acceleratedRaycast);
 
+        ifc = ifcLoader.ifcManager
+
         const fetch = await axios({
             url: `${validarSO()}/api/proyecto/${id}`,
             method: 'GET',
@@ -187,7 +208,7 @@ export const MostrarProyectoScreen = () => {
 
         const ifcUrl = URL.createObjectURL(new Blob(binaryData, { type: 'application/zip' }));
 
-        ifcLoader.load(ifcUrl, async(ifcModel) => {
+        ifcLoader.load(ifcUrl, async (ifcModel) => {
             ifcModels.push(ifcModel);
             scene.add(ifcModel);
 
@@ -203,19 +224,44 @@ export const MostrarProyectoScreen = () => {
 
             for (let i = 0; i < listaItems.length; i++) {
                 if (listaItems[i].cantidad > 0) {
-                    highlight(colors.used, listaItems[i].idPieza);
+                    await highlight(colors.selected, listaItems[i].idPieza);
                 } else {
-                    highlight(colors.selected, listaItems[i].idPieza);
+                    await highlight(colors.over, listaItems[i].idPieza);
                 }
             }
+
+            setLoad(true);
+
+            dispatchLoad({ type: 'loaded' });
         });
 
     }, []);
 
     return (
-        <div>
-            <p>Proyecto: {proyecto.nombreProyecto}</p>
-            <canvas id='three-canvas' style={{ position: 'relative', height: '96.5vh', width: '100%' }}></canvas>
-        </div>
+        <ThemeProvider theme={theme}>
+            <Container component="main" maxWidth="xs">
+                <CssBaseline />
+                <Box
+                    sx={{
+                        marginTop: 4,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center'
+                    }}
+                >
+                    <Typography component="h1" variant="h5">
+                        Proyecto: {proyecto.nombreProyecto}
+                    </Typography>
+                    {
+                        (!load) &&
+                        <Typography component="h1" variant="h5">
+                            Cargando......
+                        </Typography>
+                    }
+                    <canvas id='three-canvas' style={{ position: 'relative', height: '80vh', width: '65%' }}></canvas>
+                </Box>
+            </Container>
+        </ThemeProvider>
+
     )
 }
