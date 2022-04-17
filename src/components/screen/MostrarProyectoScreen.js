@@ -226,7 +226,7 @@ export const MostrarProyectoScreen = () => {
                 if (listaItems[i].cantidad > 0) {
                     await highlight(colors.selected, listaItems[i].idPieza);
                 } else {
-                    await highlight(colors.over, listaItems[i].idPieza);
+                    await highlight(colors.used, listaItems[i].idPieza);
                 }
             }
 
